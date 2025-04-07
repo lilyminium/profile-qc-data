@@ -1,4 +1,4 @@
-
+import pathlib
 from yammbs import MoleculeStore
 from yammbs.torsion import TorsionStore
 
@@ -7,6 +7,7 @@ def main(
     forcefield_file: str = "openff_unconstrained-2.2.1.offxml",
     n_processes: int = 16
 ):
+    root_directory = pathlib.Path(root_directory)
     opt_store = MoleculeStore(
         root_directory / "offqcdata/data/yammbs/optimizations.sqlite",
     )

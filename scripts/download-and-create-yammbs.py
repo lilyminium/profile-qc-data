@@ -1,11 +1,12 @@
 import pathlib
 import tqdm
 
-from openff.qcsubmit.results import OptimizationResultCollection, TorsiondriveResultCollection
-from offqcdata.download import QCFRACTAL_URL, get_client
-
+from openff.qcsubmit.results import OptimizationResultCollection, TorsionDriveResultCollection
+import qcportal as ptl
 from yammbs import MoleculeStore
 from yammbs.torsion import TorsionStore
+
+QCFRACTAL_URL = "https://api.qcarchive.molssi.org:443/"
 
 IGNORE_IODINE = [
     "OpenFF Discrepancy Benchmark 1",
@@ -161,7 +162,7 @@ def main(
     root_directory=".."
 ):
     root_directory = pathlib.Path(root_directory)
-    client = get_client((root_directory / "_cache").resolve())
+    client = ptl.PortalClient(address=QCFRACTAL_URL, cache_dir=(root_directory / "_cache").resolve())
 
     download_and_convert(
         client=client,
@@ -173,7 +174,7 @@ def main(
 
     download_and_convert(
         client=client,
-        qcsubmit_class=TorsiondriveResultCollection,
+        qcsubmit_class=TorsionDriveResultCollection,
         yammbs_class=TorsionStore,
         output_file=root_directory / "offqcdata/data/yammbs/torsiondrives.sqlite",
         root_directory=root_directory
