@@ -94,6 +94,7 @@ TORSIONDRIVE_WHITELISTS = [
 
 def download_and_convert(
     client,
+    dataset_names,
     qcsubmit_class,
     yammbs_class,
     output_file,
@@ -104,7 +105,8 @@ def download_and_convert(
 
     collections = []
 
-    for dsname in tqdm.tqdm(OPTIMIZATION_WHITELISTS):
+    #for dsname in tqdm.tqdm(OPTIMIZATION_WHITELISTS):
+    for dsname in tqdm.tqdm(dataset_names):
         try:
             qcsubmit_collection = qcsubmit_class.from_server(
                 client=client,
@@ -133,22 +135,25 @@ def download_and_convert(
     
     final_collection = collections.pop(0)
     seen_ids = set([
-        entry.id
+        entry.record_id
         for entry in final_collection.entries[QCFRACTAL_URL]
     ])
     for collection in collections:
         entries_to_add = [
             entry
             for entry in collection.entries[QCFRACTAL_URL]
-            if entry.id not in seen_ids
+            if entry.record_id not in seen_ids
         ]
         final_collection.entries[QCFRACTAL_URL].extend(entries_to_add)
         seen_ids |= set([
-            entry.id
+            entry.record_id
             for entry in entries_to_add
         ])
     
     print(f"Final collection has {len(final_collection.entries[QCFRACTAL_URL])} entries")
+    output_json = output_file.with_suffix(".json")
+    with output_json.open("w") as f:
+        f.write(final_collection.json(indent=4))
 
     # convert to MoleculeStore or TorsionStore
     store = yammbs_class.from_qcsubmit_collection(
@@ -166,6 +171,7 @@ def main(
 
     download_and_convert(
         client=client,
+        dataset_names=OPTIMIZATION_WHITELISTS,
         qcsubmit_class=OptimizationResultCollection,
         yammbs_class=MoleculeStore,
         output_file=root_directory / "offqcdata/data/yammbs/optimizations.sqlite",
@@ -174,6 +180,7 @@ def main(
 
     download_and_convert(
         client=client,
+        dataset_names=TORSIONDRIVE_WHITELISTS,
         qcsubmit_class=TorsionDriveResultCollection,
         yammbs_class=TorsionStore,
         output_file=root_directory / "offqcdata/data/yammbs/torsiondrives.sqlite",

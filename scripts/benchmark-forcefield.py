@@ -16,13 +16,13 @@ def main(
         n_processes=n_processes,
     )
     
-    torsion_store = TorsionStore(
-        root_directory / "offqcdata/data/yammbs/torsiondrives.sqlite",
-    )
-    torsion_store.optimize_mm(
-        forcefield_file,
-        n_processes=n_processes,
-    )
+    #torsion_store = TorsionStore(
+    #    root_directory / "offqcdata/data/yammbs/torsiondrives.sqlite",
+    #)
+    #torsion_store.optimize_mm(
+    #    forcefield_file,
+    #    n_processes=n_processes,
+    #)
 
 
         

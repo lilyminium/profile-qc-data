@@ -6,6 +6,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --account dmobley_lab
 #SBATCH --export ALL
+#SBATCH --mem=32GB
 #SBATCH --constraint=fastscratch
 #SBATCH --output slurm-%x.%A.out
 
@@ -18,7 +19,7 @@ conda activate yammbs
 # Copy the force field files to the current directory
 python download-and-create-yammbs.py
 
-python benchmark-forcefield.py
+#python benchmark-forcefield.py
 
 
 
