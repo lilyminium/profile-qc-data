@@ -4,7 +4,8 @@ import tqdm
 
 from openff.qcsubmit.results import OptimizationResultCollection, TorsionDriveResultCollection
 import qcportal as ptl
-from yammbs.inputs import QCArchiveDataset, QCArchiveTorsionDataset
+from yammbs.inputs import QCArchiveDataset
+from yammbs.torsion.inputs import QCArchiveTorsionDataset
 from yammbs import MoleculeStore
 from yammbs.torsion import TorsionStore
 
@@ -34,8 +35,7 @@ def main(
         start = i * batch_size
         end = min((i + 1) * batch_size, n_entries)
         entries = collection.entries[QCFRACTAL_URL][start:end]
-        new_collection = OptimizationResultCollection()
-        new_collection.entries[QCFRACTAL_URL] = entries
+        new_collection = OptimizationResultCollection(entries={QCFRACTAL_URL: entries})
         sub_qcarchive_dataset = QCArchiveDataset.from_qcsubmit_collection(new_collection)
         overall_dataset.qm_molecules.extend(sub_qcarchive_dataset.qm_molecules)
     
@@ -56,8 +56,7 @@ def main(
         start = i * batch_size
         end = min((i + 1) * batch_size, n_entries)
         entries = collection.entries[QCFRACTAL_URL][start:end]
-        new_collection = TorsionDriveResultCollection()
-        new_collection.entries[QCFRACTAL_URL] = entries
+        new_collection = TorsionDriveResultCollection(entries={QCFRACTAL_URL:entries})
         sub_qcarchive_dataset = QCArchiveTorsionDataset.from_qcsubmit_collection(new_collection)
         overall_dataset.qm_torsions.extend(sub_qcarchive_dataset.qm_torsions)
     

@@ -3,7 +3,7 @@
 #SBATCH -p standard
 #SBATCH -t 1-00:00:00
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=4
 #SBATCH --account dmobley_lab
 #SBATCH --export ALL
 #SBATCH --mem=32GB
