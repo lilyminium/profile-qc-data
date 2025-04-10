@@ -1,4 +1,5 @@
 import logging
+import pickle
 import pathlib
 import tqdm
 
@@ -64,25 +65,28 @@ def main(
     n_entries = len(collection.entries[QCFRACTAL_URL])
     batch_size = 1000
     n_batches = n_entries // batch_size + 1
-    overall_dataset = QCArchiveDataset()
-    for i in tqdm.tqdm(range(n_batches), desc="Converting optimizations to QCArchiveDataset"):
-        start = i * batch_size
-        end = min((i + 1) * batch_size, n_entries)
-        entries = collection.entries[QCFRACTAL_URL][start:end]
-        new_collection = OptimizationResultCollection(entries={QCFRACTAL_URL: entries})
-        sub_qcarchive_dataset = QCArchiveDataset.from_qcsubmit_collection(new_collection)
-        overall_dataset.qm_molecules.extend(sub_qcarchive_dataset.qm_molecules)
+    # overall_dataset = QCArchiveDataset()
+    # for i in tqdm.tqdm(range(n_batches), desc="Converting optimizations to QCArchiveDataset"):
+    #     start = i * batch_size
+    #     end = min((i + 1) * batch_size, n_entries)
+    #     entries = collection.entries[QCFRACTAL_URL][start:end]
+    #     new_collection = OptimizationResultCollection(entries={QCFRACTAL_URL: entries})
+    #     sub_qcarchive_dataset = QCArchiveDataset.from_qcsubmit_collection(new_collection)
+    #     overall_dataset.qm_molecules.extend(sub_qcarchive_dataset.qm_molecules)
+
+    # with open("optimizations.pkl", "wb") as f:
+    #     pickle.dump(overall_dataset, f)
     
-    store_file = root_directory / "offqcdata/data/yammbs/optimizations.sqlite"
-    # optimization_store = MoleculeStore.from_qm_dataset(
+    # store_file = root_directory / "offqcdata/data/yammbs/optimizations.sqlite"
+    # # optimization_store = MoleculeStore.from_qm_dataset(
+    # #     dataset=overall_dataset,
+    # #     database_name=store_file,
+    # # )
+    # create_moleculestore_verbose(
     #     dataset=overall_dataset,
-    #     database_name=store_file,
+    #     dataset_name=store_file,
     # )
-    create_moleculestore_verbose(
-        dataset=overall_dataset,
-        dataset_name=store_file,
-    )
-    logger.info(f"Wrote to {store_file}")
+    # logger.info(f"Wrote to {store_file}")
 
     # repeat for torsiondrives
     torsiondrive_file = root_directory / "offqcdata/data/yammbs/torsiondrives.json"
@@ -97,12 +101,15 @@ def main(
         new_collection = TorsionDriveResultCollection(entries={QCFRACTAL_URL:entries})
         sub_qcarchive_dataset = QCArchiveTorsionDataset.from_qcsubmit_collection(new_collection)
         overall_dataset.qm_torsions.extend(sub_qcarchive_dataset.qm_torsions)
+
+    with open("torsiondrives.pkl", "wb") as f:
+        pickle.dump(overall_dataset, f)
     
-    store_file = root_directory / "offqcdata/data/yammbs/torsiondrives.sqlite"
-    torsiondrive_store = TorsionStore.from_qm_dataset(
-        dataset=overall_dataset,
-        database_name=store_file,
-    )
+    # store_file = root_directory / "offqcdata/data/yammbs/torsiondrives.sqlite"
+    # torsiondrive_store = TorsionStore.from_qm_dataset(
+    #     dataset=overall_dataset,
+    #     database_name=store_file,
+    # )
     logger.info(f"Wrote to {store_file}")
 
 
