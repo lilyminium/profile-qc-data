@@ -56,6 +56,18 @@ def get_single_labels(molecule_id, store_file=None, ff_name: str = None, ff=None
     return entries
 
 
+def batch_compare_parameter(
+    molecule_ids: list[int],
+    store_file: str = None,
+    ff_name: str = None,
+):
+    ff = ForceField(ff_name)
+    store = MoleculeStore(store_file)
+    entries = []
+    for molecule_id in tqdm.tqdm(molecule_ids):
+        entries.extend(get_single_labels(molecule_id, store_file, ff_name, ff, store))
+    return entries
+
 @click.command()
 @click.option(
     "--input-file",
@@ -84,31 +96,27 @@ def main(
     output_file="../coverage/valence-parameters.csv",
 ):
     store = MoleculeStore(input_file)
-    ff = ForceField("openff_unconstrained-2.2.1.offxml")
     molecule_ids = sorted(store.get_molecule_ids())
     print(f"Loaded {len(molecule_ids)} molecules from {input_file}")
 
-    labeller = functools.partial(
-        get_single_labels,
-        # store_file=input_file,
-        ff_name="openff_unconstrained-2.2.1.offxml",
-        ff=ff,
-        store=store,
-    )
-    entries = []
-    for molecule_id in tqdm.tqdm(molecule_ids):
-        entries.extend(labeller(molecule_id))
+    
+    # split molecule_ids into batches
+    batch_size = 100
+    batch_molecule_ids = [
+        molecule_ids[i:i + batch_size] for i in range(0, len(molecule_ids), batch_size)
+    ]
+    print(f"Split into {len(batch_molecule_ids)} batches of size {batch_size}")
 
-    # with multiprocessing.Pool(n_processes) as pool:
-    #     entries = list(
-    #         tqdm.tqdm(
-    #             pool.imap(
-    #                 labeller,
-    #                 molecule_ids,
-    #             ),
-    #             total=len(molecule_ids),
-    #         )
-    #     )
+    # Use multiprocessing to process batches in parallel
+    with multiprocessing.Pool(n_processes) as pool:
+        entries = pool.map(
+            functools.partial(
+                batch_compare_parameter,
+                store_file=input_file,
+                ff_name="openff_unconstrained-2.2.1.offxml"
+            ),
+            batch_molecule_ids,
+        )
 
     df = pd.DataFrame(entries)
     df.to_csv(output_file, index=False)
