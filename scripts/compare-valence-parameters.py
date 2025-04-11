@@ -109,13 +109,17 @@ def main(
 
     # Use multiprocessing to process batches in parallel
     with multiprocessing.Pool(n_processes) as pool:
-        entries = pool.map(
-            functools.partial(
-                batch_compare_parameter,
-                store_file=input_file,
-                ff_name="openff_unconstrained-2.2.1.offxml"
-            ),
-            batch_molecule_ids,
+        entries = list(
+            tqdm.tqdm(
+                pool.imap(
+                    functools.partial(
+                        batch_compare_parameter,
+                        store_file=input_file,
+                        ff_name="openff_unconstrained-2.2.1.offxml"
+                    ),
+                batch_molecule_ids,
+                )
+            )
         )
 
     df = pd.DataFrame(entries)
