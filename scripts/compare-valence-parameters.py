@@ -29,10 +29,13 @@ def get_single_labels(molecule_id, store_file=None, ff_name: str = None, ff=None
 
     for qcarchive_id in qcarchive_ids:
         qm_conformer = store.get_qm_conformer_by_qcarchive_id(qcarchive_id)
-        mm_conformer = store.get_mm_conformer_by_qcarchive_id(
-            qcarchive_id,
-            ff_name
-        )
+        try:
+            mm_conformer = store.get_mm_conformer_by_qcarchive_id(
+                qcarchive_id,
+                ff_name
+            )
+        except:
+            continue
         internal_coordinates = get_internal_coordinates(
             mol,
             qm_conformer,
