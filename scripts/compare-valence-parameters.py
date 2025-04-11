@@ -17,9 +17,9 @@ MAPPING = {
     "Improper": "ImproperTorsions",
 }
 
-def get_single_labels(molecule_id, store_file=None, ff_name: str = None):
-    ff = ForceField(ff_name)
-    store = MoleculeStore(store_file)
+def get_single_labels(molecule_id, store_file=None, ff_name: str = None, ff=None, store=None):
+    # ff = ForceField(ff_name)
+    # store = MoleculeStore(store_file)
 
     entries = []
     smiles = store.get_smiles_by_molecule_id(molecule_id)
@@ -84,25 +84,31 @@ def main(
     output_file="../coverage/valence-parameters.csv",
 ):
     store = MoleculeStore(input_file)
+    ff = ForceField("openff_unconstrained-2.2.1.offxml")
     molecule_ids = sorted(store.get_molecule_ids())
     print(f"Loaded {len(molecule_ids)} molecules from {input_file}")
 
     labeller = functools.partial(
         get_single_labels,
-        store_file=input_file,
+        # store_file=input_file,
         ff_name="openff_unconstrained-2.2.1.offxml",
+        ff=ff,
+        store=store,
     )
+    entries = []
+    for molecule_id in tqdm.tqdm(molecule_ids):
+        entries.extend(labeller(molecule_id))
 
-    with multiprocessing.Pool(n_processes) as pool:
-        entries = list(
-            tqdm.tqdm(
-                pool.imap(
-                    labeller,
-                    molecule_ids,
-                ),
-                total=len(molecule_ids),
-            )
-        )
+    # with multiprocessing.Pool(n_processes) as pool:
+    #     entries = list(
+    #         tqdm.tqdm(
+    #             pool.imap(
+    #                 labeller,
+    #                 molecule_ids,
+    #             ),
+    #             total=len(molecule_ids),
+    #         )
+    #     )
 
     df = pd.DataFrame(entries)
     df.to_csv(output_file, index=False)
