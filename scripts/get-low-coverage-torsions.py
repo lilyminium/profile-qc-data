@@ -23,15 +23,23 @@ def main(
     unique_counts_per_parameter_id = {}
     for k, subdf in df.groupby("parameter_id"):
         unique_counts_per_parameter_id[k] = len(subdf.cmiles.unique())
+
+    forcefield = ForceField(forcefield)
+    handler = forcefield.get_parameter_handler("ProperTorsions")
+
+    # add on parameters with zero counts
+    for parameter in handler.parameters:
+        if parameter.id not in unique_counts_per_parameter_id:
+            unique_counts_per_parameter_id[parameter.id] = 0
+
     count_df = pd.DataFrame.from_dict(
         unique_counts_per_parameter_id, orient="index",
         columns=["Count"]
     )
+    
     subset = count_df[count_df["Count"] < count_threshold].sort_values("Count")
     print(f"Found {len(subset)} torsions with less than {count_threshold} unique conformers")
-
-    forcefield = ForceField(forcefield)
-    handler = forcefield.get_parameter_handler("ProperTorsions")
+    
     smiles = []
     for parameter_id in tqdm.tqdm(subset.index):
         parameter = handler.get_parameter({"id": parameter_id})[0]
