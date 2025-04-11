@@ -17,8 +17,9 @@ MAPPING = {
     "Improper": "ImproperTorsions",
 }
 
-def get_single_labels(molecule_id, store=None, ff_name: str = None):
+def get_single_labels(molecule_id, store_file=None, ff_name: str = None):
     ff = ForceField(ff_name)
+    store = MoleculeStore(store_file)
 
     entries = []
     smiles = store.get_smiles_by_molecule_id(molecule_id)
@@ -88,7 +89,7 @@ def main(
 
     labeller = functools.partial(
         get_single_labels,
-        store=store,
+        store_file=input_file,
         ff_name="openff_unconstrained-2.2.1.offxml",
     )
 
