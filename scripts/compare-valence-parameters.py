@@ -1,3 +1,4 @@
+import functools
 import multiprocessing
 import click
 import tqdm
@@ -17,8 +18,7 @@ MAPPING = {
 }
 
 def get_single_labels(molecule_id, store=None, ff_name: str = None):
-    forcefield_name = "openff_unconstrained-2.2.1.offxml"
-    ff = ForceField(forcefield_name)
+    ff = ForceField(ff_name)
 
     entries = []
     smiles = store.get_smiles_by_molecule_id(molecule_id)
@@ -30,7 +30,7 @@ def get_single_labels(molecule_id, store=None, ff_name: str = None):
         qm_conformer = store.get_qm_conformer_by_qcarchive_id(qcarchive_id)
         mm_conformer = store.get_mm_conformer_by_qcarchive_id(
             qcarchive_id,
-            forcefield_name
+            ff_name
         )
         internal_coordinates = get_internal_coordinates(
             mol,
@@ -86,11 +86,17 @@ def main(
     molecule_ids = sorted(store.get_molecule_ids())
     print(f"Loaded {len(molecule_ids)} molecules from {input_file}")
 
+    labeller = functools.partial(
+        get_single_labels,
+        store=store,
+        ff_name="openff_unconstrained-2.2.1.offxml",
+    )
+
     with multiprocessing.Pool(n_processes) as pool:
         entries = list(
             tqdm.tqdm(
                 pool.imap(
-                    get_single_labels,
+                    labeller,
                     molecule_ids,
                 ),
                 total=len(molecule_ids),
